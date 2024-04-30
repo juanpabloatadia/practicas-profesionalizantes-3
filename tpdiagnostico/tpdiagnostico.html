@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seleccion de Localidad</title>
+<style>
+select {margin-bottom: 10px;}
+</style>
+</head>
+<body>
+<h2>Selección de Localidad</h2>
+<form id="form">
+<select id="provincia" onchange="cargarDepartamentos()">
+<option value="">Selecciona una Provincia</option>
+</select>
+<select id="departamento" onchange="cargarMunicipios()" disabled>
+<option value="">Selecciona un Departamento</option>
+</select>
+<select id="municipio" onchange="cargarNombres()" disabled>
+<option value="">Selecciona un Municipio</option>
+</select>
+<select id="nombre" onchange="mostrarSeleccion()" disabled>
+<option value="">Selecciona un Nombre</option>
+</select>
+</form>
+
+<div id="seleccion"></div> <!-- Este es el nuevo div donde se mostrará la selección -->
+
+<script>
+// Función para cargar dinámicamente las provincias desde el servidor
+function cargarProvincias() 
+{
+    var provinciaSelect = document.getElementById("provincia");
+    provinciaSelect.innerHTML = '<option value="">Selecciona una Provincia</option>';
+    // Realizar solicitud AJAX para obtener las provincias desde el servidor
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "cargar_provincias.php", true);
+    xhr.onreadystatechange = function() 
+    {
+        if (xhr.readyState === 4 && xhr.status === 200) 
+        {
+            var provincias = JSON.parse(xhr.responseText);
+            provincias.forEach(function(provincia) 
+            {
+                var option = document.createElement("option");
+                option.text = provincia.name;
+                option.value = provincia.id;
+                provinciaSelect.appendChild(option);
+            });
+        }
+    };
+    xhr.send();
+}
+
+function cargarDepartamentos() 
+{
+    var provinciaSeleccionada = document.getElementById("provincia").value;
+    var departamentoSelect = document.getElementById("departamento");
+    departamentoSelect.innerHTML = '<option value="">Selecciona un Departamento</option>';
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "cargar_departamentos.php?id_provincia=" + provinciaSeleccionada, true);
+    xhr.onreadystatechange = function() 
+    {
+        if (xhr.readyState === 4 && xhr.status === 200) 
+        {
+            var response = JSON.parse(xhr.responseText);
+            console.log("Respuesta del servidor (departamentos):", response);
+            if (!response.error) 
+            {
+                response.forEach(function(departamento) 
+                {
+                    var option = document.createElement("option");
+                    option.text = departamento.name;
+                    option.value = departamento.id;
+                    departamentoSelect.appendChild(option);
+                });
+                departamentoSelect.disabled = false;
+            } 
+            
+            else 
+            {
+                console.error(response.error);
+            }
+        }
+    };
+    xhr.send();
+}
+
+// Función para cargar dinámicamente los municipios desde la base de datos
+function cargarMunicipios() 
+{
+    var departamentoSeleccionado = document.getElementById("departamento").value;
+    var municipioSelect = document.getElementById("municipio");
+    municipioSelect.innerHTML = '<option value="">Selecciona un Municipio</option>';
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "cargar_municipios.php?id_departamento=" + departamentoSeleccionado, true);
+    xhr.onreadystatechange = function() 
+    {
+        if (xhr.readyState === 4 && xhr.status === 200) 
+        {
+            var municipios = JSON.parse(xhr.responseText);
+            municipios.forEach(function(municipio) 
+            {
+                var option = document.createElement("option");
+                option.text = municipio.name;
+                option.value = municipio.id;
+                municipioSelect.appendChild(option);
+            });
+            municipioSelect.disabled = false; // Asegúrate de habilitar el select de municipios aquí
+        }
+    };
+    xhr.send();
+}
+
+// Función para cargar dinámicamente los nombres desde la base de datos
+function cargarNombres() 
+{
+    var municipioSeleccionado = document.getElementById("municipio").value;
+    var nombreSelect = document.getElementById("nombre");
+    nombreSelect.innerHTML = '<option value="">Selecciona un Nombre</option>';
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "cargar_nombres.php?id_municipio=" + municipioSeleccionado, true);
+    xhr.onreadystatechange = function() 
+    {
+        if (xhr.readyState === 4 && xhr.status === 200) 
+        {
+            var nombres = JSON.parse(xhr.responseText);
+            nombres.forEach(function(nombre) 
+            {
+                var option = document.createElement("option");
+                option.text = nombre.name;
+                option.value = nombre.id;
+                nombreSelect.appendChild(option);
+            });
+            nombreSelect.disabled = false; // Asegúrate de habilitar el select de nombres aquí
+        }
+    };
+    xhr.send();
+}
+
+function mostrarSeleccion() 
+{
+    var provincia = document.getElementById("provincia").value;
+    var departamento = document.getElementById("departamento").value;
+    var municipio = document.getElementById("municipio").value;
+    var nombre = document.getElementById("nombre").value;
+
+    console.log("Provincia seleccionada:", provincia);
+    console.log("Departamento seleccionado:", departamento);
+    console.log("Municipio seleccionado:", municipio);
+    console.log("Nombre seleccionado:", nombre);
+
+    var seleccionDiv = document.getElementById("seleccion");
+    seleccionDiv.innerHTML = "<h3>Resultado de su selección elegida:</h3>";
+
+    if (provincia) 
+    {
+        seleccionDiv.innerHTML += "<p>Provincia: " + document.getElementById("provincia").options[document.getElementById("provincia").selectedIndex].text + "</p>";
+    }
+    
+    if (departamento) 
+    {
+        seleccionDiv.innerHTML += "<p>Departamento: " + document.getElementById("departamento").options[document.getElementById("departamento").selectedIndex].text + "</p>";
+    }
+    
+    if (municipio) 
+    {
+        seleccionDiv.innerHTML += "<p>Municipio: " + document.getElementById("municipio").options[document.getElementById("municipio").selectedIndex].text + "</p>";
+    }
+    
+    if (nombre) 
+    {
+        seleccionDiv.innerHTML += "<p>Localidad: " + document.getElementById("nombre").options[document.getElementById("nombre").selectedIndex].text + "</p>";
+    }
+}
+
+// Cargar las provincias al cargar la página
+cargarProvincias();
+</script>
+</body>
+</html>
+
+
+
