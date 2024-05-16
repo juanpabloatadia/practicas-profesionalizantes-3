@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrar Cuentas</title>
+    <style>
+        table 
+        {   margin-top: 20px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td 
+        {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        th 
+        {
+            background-color: #f2f2f2;
+        }
+
+        .button-container 
+        {
+            margin-top: 20px;
+        }
+
+        .button 
+        {
+            padding: 10px 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        select#opciones 
+        {   
+            background-color: #f2f2f2;
+            border: 1px solid #dddddd;
+            padding: 10px 20px;            
+        }
+              
+    </style>
+</head>
+<body>
+    <h1>Administrar Cuentas</h1>
+    <div class="button-container">
+        <button class="button" onclick="listarCuentas()">Listar</button>
+        <button class="button" onclick="crearCuenta()">Crear</button>
+        <button class="button" onclick="editarCuenta()">Editar</button>
+        <button class="button" onclick="eliminarCuenta()">Eliminar</button>
+        <select id="opciones">
+        <option value="opcion1">Opción 1</option>
+        <option value="opcion2">Opción 2</option>
+        <option value="opcion3">Opción 3</option>
+        <option value="opcion4">Opción 4</option>
+        </select>
+    </div>
+
+    <table id="tabla-cuentas" style="display:none;">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Saldo</th>
+            </tr>
+        </thead>
+        <tbody id="cuentas-body"></tbody>
+    </table>
+
+    <script>
+        let cuentas = [];
+
+        function cargarCuentas() 
+        {
+            fetch('cuentas.json') 
+                .then(response => response.json())
+                .then(data => {cuentas = data.cuentas;})
+                .catch(error => console.error('Error al cargar el archivo JSON:', error));
+        }
+
+        function listarCuentas() 
+        {
+            const tablaCuentas = document.getElementById('tabla-cuentas');
+            const cuentasBody = document.getElementById('cuentas-body');
+            cuentasBody.innerHTML = '';
+            cuentas.forEach(cuenta => 
+            {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${cuenta.id}</td>
+                    <td>${cuenta.username}</td>
+                    <td>${cuenta.saldo}</td>`;
+                cuentasBody.appendChild(row);
+            });
+            tablaCuentas.style.display = 'table';
+        }
+
+        function crearCuenta() 
+        {
+            const nuevoId = cuentas.length + 1;
+            const nuevoUsername = prompt('Ingrese el nombre de usuario:');
+            const nuevoSaldo = prompt('Ingrese el saldo:');
+            if (nuevoUsername && nuevoSaldo) 
+            {
+                cuentas.push({ id: nuevoId, username: nuevoUsername, saldo: `$${nuevoSaldo}` });
+                console.log('Cuenta creada:', { id: nuevoId, username: nuevoUsername, saldo: `$${nuevoSaldo}` });
+                alert('Cuenta creada correctamente.');
+                listarCuentas();
+            } 
+            
+            else 
+            {
+                alert('Nombre de usuario y saldo son obligatorios.');
+            }
+        }
+
+        function editarCuenta() 
+        {
+            const buscar = prompt('Ingrese el ID o el nombre de usuario de la cuenta que desea editar:');
+            if (buscar) 
+            {
+                const cuenta = cuentas.find(cuenta => cuenta.id == buscar || cuenta.username == buscar);
+                
+                if (cuenta) 
+                {
+                    const versionAnterior = { id: cuenta.id, username: cuenta.username, saldo: cuenta.saldo };
+                    const nuevoUsername = prompt('Ingrese el nuevo nombre de usuario:', cuenta.username);
+                    const nuevoSaldo = prompt('Ingrese el nuevo saldo:', cuenta.saldo);
+                    
+                    if (nuevoUsername !== null && nuevoSaldo !== null) 
+                    {
+                        cuenta.username = nuevoUsername;
+                        cuenta.saldo = `$${nuevoSaldo}`;
+                        console.log('Cuenta editada - Versión anterior:', versionAnterior);
+                        console.log('Cuenta editada - Versión actualizada:', cuenta);
+                        alert('Cuenta editada correctamente.');
+                        listarCuentas();
+                    } 
+
+                    else 
+                    {
+                        alert('Debe proporcionar un nombre de usuario y un saldo válidos.');
+                    }
+                } 
+                
+                else 
+                {
+                    alert('No se encontró ninguna cuenta con ese ID o nombre de usuario.');
+                }
+            }
+        }
+
+        function eliminarCuenta() 
+        {
+            const buscar = prompt('Ingrese el ID o el nombre de usuario de la cuenta que desea eliminar:');
+            if (buscar) 
+            {
+                const cuentaIndex = cuentas.findIndex(cuenta => cuenta.id == buscar || cuenta.username == buscar);
+                if (cuentaIndex !== -1) 
+                {   
+                    console.log('Cuenta eliminada:', cuentas[cuentaIndex]);
+                    const confirmar = confirm('¿Estás seguro de que deseas eliminar esta cuenta?');
+                    if (confirmar) 
+                    {
+                        cuentas.splice(cuentaIndex, 1);
+                        alert('Cuenta eliminada correctamente.');
+                        listarCuentas();
+                    }
+                } 
+
+                else 
+                {
+                    alert('No se encontró ninguna cuenta con ese ID o nombre de usuario.');
+                }
+            }
+        }
+
+        window.onload = cargarCuentas;
+    </script>
+</body>
+</html>

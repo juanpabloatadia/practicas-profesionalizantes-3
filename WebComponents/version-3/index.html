@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administrar Cuentas</title>
+<style>
+table {
+    margin-top: 20px;
+    border-collapse: collapse;
+    width: 100%;
+}
+th, td {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+th {
+    background-color: #f2f2f2;
+}
+.button-container {
+    margin-top: 20px;
+}
+.button {
+    padding: 10px 20px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+select#opciones {
+    background-color: #f2f2f2;
+    border: 1px solid #dddddd;
+    padding: 10px 20px;
+}
+</style>
+<script>
+function listarCuenta() {
+    fetch('listar.php')
+    .then(response => response.json())
+    .then(data => {
+        const tbody = document.getElementById('cuenta-body');
+        tbody.innerHTML = '';
+        data.forEach(cuenta => {
+            let row = `<tr>
+                        <td>${cuenta.id}</td>
+                        <td>${cuenta.username}</td>
+                        <td>${cuenta.saldo}</td>
+                       </tr>`;
+            tbody.innerHTML += row;
+        });
+        document.getElementById('tabla-cuenta').style.display = 'table';
+    });
+}
+
+function crearCuenta() {
+    let username = prompt("Ingrese el nombre de usuario:");
+    let saldo = prompt("Ingrese el saldo:");
+    if (username && saldo) {
+        fetch('crear.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username: username, saldo: saldo})
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            listarCuenta();
+        });
+    }
+}
+
+function editarCuenta() {
+    let id = prompt("Ingrese el ID de la cuenta a editar:");
+    let username = prompt("Ingrese el nuevo nombre de usuario:");
+    let saldo = prompt("Ingrese el nuevo saldo:");
+    if (id && username && saldo) {
+        fetch('editar.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({id: id, username: username, saldo: saldo})
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            listarCuenta();
+        });
+    }
+}
+
+function eliminarCuenta() {
+    let id = prompt("Ingrese el ID de la cuenta a eliminar:");
+    if (id) {
+        fetch('eliminar.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({id: id})
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            listarCuenta();
+        });
+    }
+}
+</script>
+</head>
+<body>
+<h1>Administrar Cuentas</h1>
+<div class="button-container">
+    <button class="button" onclick="listarCuenta()">Listar</button>
+    <button class="button" onclick="crearCuenta()">Crear</button>
+    <button class="button" onclick="editarCuenta()">Editar</button>
+    <button class="button" onclick="eliminarCuenta()">Eliminar</button>
+    <select id="opciones">
+        <option value="opcion1">Opción 1</option>
+        <option value="opcion2">Opción 2</option>
+        <option value="opcion3">Opción 3</option>
+        <option value="opcion4">Opción 4</option>
+    </select>
+</div>
+<table id="tabla-cuenta" style="display:none;">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre de usuario</th>
+            <th>Saldo</th>
+        </tr>
+    </thead>
+    <tbody id="cuenta-body"></tbody>
+</table>
+</body>
+</html>
